@@ -43,9 +43,6 @@ public class ReservationController {
         String typeReservation = params.getTypeReservation();
         int nbPlaces = params.getNbPlaces();
 
-        // 2) Conversion de la date de réservation en LocalDateTime
-        LocalDateTime dateReservation = toDate(dateReservationStr);
-
         // 3) Extraction de la base de données des informations client
         Client client = clientDao.extraireClient(identifiantClient);
 
@@ -53,22 +50,18 @@ public class ReservationController {
         TypeReservation type = typeReservationDao.extraireTypeReservation(typeReservation);
 
         // 5) Création de la réservation
-        Reservation reservation = new Reservation(dateReservation);
+        Reservation reservation = Reservation.fromDateString(dateReservationStr);
         reservation.setNbPlaces(nbPlaces);
         reservation.setClient(client);
 
         // 6) Ajout de la réservation au client
-        client.getReservations().add(reservation);
+        client.ajouterReservation(reservation);
 
         // 7) Calcul du montant total de la réservation qui dépend:
         //    - du nombre de places
         //    - de la réduction qui s'applique si le client est premium ou non
-        double total = type.getMontant() * nbPlaces;
-        if (client.isPremium()) {
-            reservation.setTotal(total * (1 - type.getReductionPourcent() / 100.0));
-        } else {
-            reservation.setTotal(total);
-        }
+        reservation.calculerTotal(type);
+
         return reservation;
     }
 

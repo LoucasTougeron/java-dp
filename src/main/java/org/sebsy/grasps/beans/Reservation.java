@@ -5,9 +5,16 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
+/**
+ * Entité représentant une réservation.
+ */
 @Entity
 public class Reservation {
+
+    private static final DateTimeFormatter FORMATTER =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     @Id
     private Long id;
@@ -23,82 +30,70 @@ public class Reservation {
     private Client client;
 
     public Reservation() {
-
     }
 
     public Reservation(LocalDateTime date) {
-        super();
         this.date = date;
     }
 
     /**
-     * Getter
+    * Calcule le montant total de la réservation en fonction du nombre de places et du type de réservation.
      *
-     * @return the date
+     * @param type le type de réservation portant les informations tarifaires
      */
+    public void calculerTotal(TypeReservation type) {
+        double montantBrut = type.getMontant() * nbPlaces;
+
+        if (client != null && client.isPremium()) {
+            montantBrut = montantBrut * (1 - type.getReductionPourcent() / 100.0);
+        }
+
+        this.total = montantBrut;
+    }
+
+    /**
+     * Fabrique une {@link Reservation} à partir d'une date au format {@code dd/MM/yyyy HH:mm:ss}.
+     *
+     * @param dateStr date au format String
+     * @return nouvelle instance de Reservation
+     */
+    public static Reservation fromDateString(String dateStr) {
+        LocalDateTime date = LocalDateTime.parse(dateStr, FORMATTER);
+        return new Reservation(date);
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters / Setters
+    // -------------------------------------------------------------------------
+
     public LocalDateTime getDate() {
         return date;
     }
 
-    /**
-     * Setter
-     *
-     * @param date the date to set
-     */
     public void setDate(LocalDateTime date) {
         this.date = date;
     }
 
-    /**
-     * Getter
-     *
-     * @return the nbPlaces
-     */
     public int getNbPlaces() {
         return nbPlaces;
     }
 
-    /**
-     * Setter
-     *
-     * @param nbPlaces the nbPlaces to set
-     */
     public void setNbPlaces(int nbPlaces) {
         this.nbPlaces = nbPlaces;
     }
 
-    /**
-     * Getter
-     *
-     * @return the total
-     */
     public double getTotal() {
         return total;
     }
 
-    /**
-     * Setter
-     *
-     * @param total the total to set
-     */
     public void setTotal(double total) {
         this.total = total;
     }
 
-    /**
-     * Getter
-     *
-     * @return the client
-     */
     public Client getClient() {
         return client;
     }
 
-    /**
-     * Setter
-     *
-     * @param client the client to set
-     */
     public void setClient(Client client) {
         this.client = client;
     }
